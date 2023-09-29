@@ -32,7 +32,7 @@ export default function App() {
       <Meta />
       <Links />
     </head>
-    <body className="min-h-screen bg-zinc-900 font-sans text-white">
+    <body className="min-h-screen">
     <Outlet />
     <Scripts />
     <LiveReload />
