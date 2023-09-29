@@ -1,14 +1,14 @@
 import type {ActionFunctionArgs, LoaderFunctionArgs, MetaFunction} from "@remix-run/node";
 import {json, redirect} from "@remix-run/node";
 import {Form, Link, useActionData, useSearchParams} from "@remix-run/react";
-import {useEffect, useRef} from "react";
 import {createUser, getUserByEmail} from "~/domains/users/user-queries.server";
 import {createUserSession, getUserId} from "~/session.server";
-import {safeRedirect, validateEmail} from "~/utils";
+import {safeRedirect} from "~/utils";
 import {Role, UserInputSchema} from "~/domains/users/user-schema";
 import {withZod} from "@remix-validated-form/with-zod";
-import {ValidatedForm} from "remix-validated-form";
+import {ValidatedForm, validationError} from "remix-validated-form";
 import Input from "~/components/Input";
+import {z} from "zod";
 
 export const loader = async ({request}: LoaderFunctionArgs) => {
   const userId = await getUserId(request);
@@ -16,45 +16,36 @@ export const loader = async ({request}: LoaderFunctionArgs) => {
   return json({});
 };
 
-const validator = withZod(UserInputSchema);
+const validator = withZod(
+  UserInputSchema.extend({
+    redirectTo: z.string().default(""),
+  })
+);
 
 export const action = async ({request}: ActionFunctionArgs) => {
-  const formData = await request.formData();
-  const email = formData.get("email");
-  const password = formData.get("password");
-  const redirectTo = safeRedirect(formData.get("redirectTo"), "/");
+  const result = await validator.validate(
+    await request.formData()
+  );
 
-  if (!validateEmail(email)) {
-    return json(
-      {errors: {email: "Email is invalid", password: null}},
-      {status: 400}
-    );
+  if (result.error) {
+    // validationError comes from `remix-validated-form`
+    return validationError(result.error);
   }
 
-  if (typeof password !== "string" || password.length === 0) {
-    return json(
-      {errors: {email: null, password: "Password is required"}},
-      {status: 400}
-    );
-  }
+  const {email, password} = result.data;
+  const redirectTo = safeRedirect(result.data.redirectTo);
 
-  if (password.length < 8) {
-    return json(
-      {errors: {email: null, password: "Password is too short"}},
-      {status: 400}
-    );
-  }
 
   const existingUser = await getUserByEmail(email);
   if (existingUser) {
-    return json(
+    return validationError(
       {
-        errors: {
-          email: "A user already exists with this email",
-          password: null,
+        fieldErrors: {
+          email: "Email already in use",
         },
+
       },
-      {status: 400}
+      result.data
     );
   }
 
@@ -74,16 +65,6 @@ export default function Join() {
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") ?? undefined;
   const actionData = useActionData<typeof action>();
-  const emailRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (actionData?.errors?.email) {
-      emailRef.current?.focus();
-    } else if (actionData?.errors?.password) {
-      passwordRef.current?.focus();
-    }
-  }, [actionData]);
 
   return (
     <div className="flex min-h-full flex-col justify-center">

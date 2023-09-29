@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { User, UserCreate, UserSchema, UserWithPasswordSchema } from "~/domains/users/user-schema";
+import {User, UserSchema, UserWithPasswordSchema} from "~/domains/users/user-schema";
 import { db } from "~/database/node-mongo.server";
 
 export const userService = db.createService<User>("users", {
@@ -10,10 +10,10 @@ export const passwordService = db.createService("passwords", {
   schemaValidator: (data) => UserWithPasswordSchema.parseAsync(data),
 });
 
-export async function createUser({ password, ...userCreateWithoutPassword }: UserCreate) {
+export async function createUser({ password, ...userWithoutPassword }: Omit<User, "_id"> & { password: string }) {
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const user = await userService.insertOne(userCreateWithoutPassword, {});
+  const user = await userService.insertOne(userWithoutPassword, {});
   await passwordService.insertOne({
     userId: user._id,
     hash: hashedPassword
