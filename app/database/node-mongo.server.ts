@@ -1,11 +1,15 @@
 import { Database } from "@paralect/node-mongo";
 import { createIndexIfNotExists } from "./database-utils";
+import { requireEnvVar } from "~/utils.server";
 
 let db: Database;
 
 declare global {
   var __node_mongo_db__: Database;
 }
+
+requireEnvVar("MONGODB_HOST");
+requireEnvVar("MONGODB_DATABASE");
 
 if (!global.__node_mongo_db__) {
   // If neither user nor password is set, we assume access control is disabled, so we don't include the ':' and '@'
