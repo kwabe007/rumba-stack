@@ -24,5 +24,9 @@ export const UserWithPasswordSchema = UserSchema.extend({
 })
 export type UserWithPassword = z.infer<typeof UserWithPasswordSchema>;
 
-const UserCreateSchema = UserSchema.omit({ _id: true }).extend({ password: z.string().min(8) });
-export type UserCreate = z.infer<typeof UserCreateSchema>;
+export const UserInputSchema = UserSchema.pick({
+  email: true,
+}).extend({
+  password: z.string().min(8)
+});
+export type UserInput = z.infer<typeof UserInputSchema>;
