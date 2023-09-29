@@ -1,4 +1,7 @@
 import { useIsAdmin } from "~/hooks";
+import {MetaFunction} from "@remix-run/node";
+
+export const meta: MetaFunction = () => [{ title: "Remix Template Lite" }];
 
 export default function IndexPage() {
   const isAdmin = useIsAdmin();
