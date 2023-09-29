@@ -26,6 +26,10 @@ export async function getUserById(_id: string) {
   return  await userService.findOne({ _id });
 }
 
+export async function getUserByEmail(email: string) {
+  return  await userService.findOne({ email });
+}
+
 export async function verifyLogin(
   email: string,
   password: string
