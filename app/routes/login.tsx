@@ -4,11 +4,15 @@ import type {
   MetaFunction,
 } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, useActionData, useSearchParams } from "@remix-run/react";
-import { useEffect, useRef } from "react";
+import { Link, useSearchParams} from "@remix-run/react";
 import { createUserSession, getUserId } from "~/session.server";
-import { safeRedirect, validateEmail } from "~/utils";
+import { safeRedirect } from "~/utils";
 import { verifyLogin } from "~/domains/users/user-queries.server";
+import Input from "~/components/Input";
+import {useField, ValidatedForm, validationError} from "remix-validated-form";
+import {withZod} from "@remix-validated-form/with-zod";
+import {UserInputSchema} from "~/domains/users/user-schema";
+import {z} from "zod";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const userId = await getUserId(request);
@@ -16,41 +20,36 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return json({});
 };
 
+const validator = withZod(
+  UserInputSchema.extend({
+    redirectTo: z.string().default(""),
+    remember: z.string().optional(),
+  })
+);
+
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const formData = await request.formData();
-  const email = formData.get("email");
-  const password = formData.get("password");
-  const redirectTo = safeRedirect(formData.get("redirectTo"), "/");
-  const remember = formData.get("remember");
+  const result = await validator.validate(
+    await request.formData()
+  );
 
-  if (!validateEmail(email)) {
-    return json(
-      { errors: { email: "Email is invalid", password: null } },
-      { status: 400 },
-    );
+  if (result.error) {
+    // validationError comes from `remix-validated-form`
+    return validationError(result.error);
   }
 
-  if (typeof password !== "string" || password.length === 0) {
-    return json(
-      { errors: { email: null, password: "Password is required" } },
-      { status: 400 },
-    );
-  }
-
-  if (password.length < 8) {
-    return json(
-      { errors: { email: null, password: "Password is too short" } },
-      { status: 400 },
-    );
-  }
+  const {email, password, remember} = result.data;
+  const redirectTo = safeRedirect(result.data.redirectTo);
 
   const user = await verifyLogin(email, password);
 
   if (!user) {
-    return json(
-      { errors: { email: "Invalid email or password", password: null } },
-      { status: 400 },
-    );
+    return validationError(
+      {
+        fieldErrors: {
+          form: "Wrong email or password",
+        }
+      }
+    )
   }
 
   return createUserSession({
@@ -66,76 +65,14 @@ export const meta: MetaFunction = () => [{ title: "Login" }];
 export default function LoginPage() {
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") || "/";
-  const actionData = useActionData<typeof action>();
-  const emailRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (actionData?.errors?.email) {
-      emailRef.current?.focus();
-    } else if (actionData?.errors?.password) {
-      passwordRef.current?.focus();
-    }
-  }, [actionData]);
+  const {error} = useField("form", { formId: "login" });
 
   return (
     <div className="flex min-h-full flex-col justify-center">
       <div className="mx-auto w-full max-w-md px-8 pt-16">
-        <Form method="post" className="space-y-6">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium"
-            >
-              Email address
-            </label>
-            <div className="mt-1">
-              <input
-                ref={emailRef}
-                id="email"
-                required
-                autoFocus={true}
-                name="email"
-                type="email"
-                autoComplete="email"
-                aria-invalid={actionData?.errors?.email ? true : undefined}
-                aria-describedby="email-error"
-                className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
-              />
-              {actionData?.errors?.email ? (
-                <div className="pt-1 text-red-700" id="email-error">
-                  {actionData.errors.email}
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium"
-            >
-              Password
-            </label>
-            <div className="mt-1">
-              <input
-                id="password"
-                ref={passwordRef}
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                aria-invalid={actionData?.errors?.password ? true : undefined}
-                aria-describedby="password-error"
-                className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
-              />
-              {actionData?.errors?.password ? (
-                <div className="pt-1 text-red-700" id="password-error">
-                  {actionData.errors.password}
-                </div>
-              ) : null}
-            </div>
-          </div>
-
+        <ValidatedForm id="login" validator={validator} method="post" className="space-y-2">
+          <Input name="email" label="Email address" />
+          <Input name="password" label="Password" type="password" />
           <input type="hidden" name="redirectTo" value={redirectTo} />
           <button
             type="submit"
@@ -143,6 +80,9 @@ export default function LoginPage() {
           >
             Log in
           </button>
+          {error && (
+            <div className="text-red-700 text-sm">{error}</div>
+          )}
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <input
@@ -159,7 +99,21 @@ export default function LoginPage() {
               </label>
             </div>
           </div>
-        </Form>
+          <div className="flex items-center justify-center">
+            <div className="text-center text-sm text-gray-500">
+              Don't have an account?{" "}
+              <Link
+                className="text-blue-500 underline"
+                to={{
+                  pathname: "/register",
+                  search: searchParams.toString(),
+                }}
+              >
+                Register
+              </Link>
+            </div>
+          </div>
+        </ValidatedForm>
       </div>
     </div>
   );
