@@ -29,6 +29,7 @@
     "@remix-run/dev": "^2.0.1",
     "@types/bcryptjs": "^2.4.4",
     "@types/prompt-sync": "^4.2.1",
+    "@types/qs": "^6.9.9",
     "@types/react": "^18.2.23",
     "dotenv": "^16.3.1",
     "tailwindcss": "^3.3.3",
