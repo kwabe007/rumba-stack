@@ -1,9 +1,9 @@
-import bcrypt from "bcryptjs";
-import promptSync from "prompt-sync";
+import bcrypt from 'bcryptjs'
+import promptSync from 'prompt-sync'
 
-const promptFunc = promptSync();
+const promptFunc = promptSync()
 
-const userInput = promptFunc({ echo: "*" });
+const userInput = promptFunc({ echo: '*' })
 
-const hashed = bcrypt.hashSync(userInput, 10);
+const hashed = bcrypt.hashSync(userInput, 10)
 console.log(hashed)

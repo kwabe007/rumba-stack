@@ -1,6 +1,6 @@
-import { useMatches } from "@remix-run/react";
-import { useMemo } from "react";
-import { Role, User } from "~/domains/users/user-schema";
+import { useMatches } from '@remix-run/react'
+import { useMemo } from 'react'
+import { Role, User } from '~/domains/users/user-schema'
 
 /**
  * This base hook is used in other hooks to quickly search for specific data
@@ -9,39 +9,39 @@ import { Role, User } from "~/domains/users/user-schema";
  * @returns {JSON|undefined} The router data or undefined if not found
  */
 export function useMatchesData(
-  id: string,
+  id: string
 ): Record<string, unknown> | undefined {
-  const matchingRoutes = useMatches();
+  const matchingRoutes = useMatches()
   const route = useMemo(
     () => matchingRoutes.find((route) => route.id === id),
-    [matchingRoutes, id],
-  );
-  return route?.data as Record<string, unknown>;
+    [matchingRoutes, id]
+  )
+  return route?.data as Record<string, unknown>
 }
 
 function isUser(user: any): user is User {
-  return user && typeof user === "object" && typeof user.email === "string";
+  return user && typeof user === 'object' && typeof user.email === 'string'
 }
 
 export function useOptionalUser(): User | undefined {
-  const data = useMatchesData("root");
+  const data = useMatchesData('root')
   if (!data || !isUser(data.user)) {
-    return undefined;
+    return undefined
   }
-  return data.user;
+  return data.user
 }
 
 export function useUser(): User {
-  const maybeUser = useOptionalUser();
+  const maybeUser = useOptionalUser()
   if (!maybeUser) {
     throw new Error(
-      "No user found in root loader, but user is required by useUser. If user is optional, try useOptionalUser instead.",
-    );
+      'No user found in root loader, but user is required by useUser. If user is optional, try useOptionalUser instead.'
+    )
   }
-  return maybeUser;
+  return maybeUser
 }
 
 export function useIsAdmin(): boolean {
-  const user = useOptionalUser();
-  return user?.role === Role.Admin;
+  const user = useOptionalUser()
+  return user?.role === Role.Admin
 }
