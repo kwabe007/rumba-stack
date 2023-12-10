@@ -3,27 +3,29 @@ import { ComponentPropsWithoutRef } from 'react'
 
 interface InputProps extends ComponentPropsWithoutRef<'input'> {
   name: string
-  label: string
+  label?: string
 }
 
 export default function Input({
-  name,
-  label,
-  type,
-  className,
-  ...rest
-}: InputProps) {
+                                name,
+                                label,
+                                type,
+                                className,
+                                ...rest
+                              }: InputProps) {
   const { error } = useField(name)
 
   return (
     <div className={className}>
       <div className="relative">
-        <label
-          className="block text-sm font-medium text-gray-700"
-          htmlFor={name}
-        >
-          {label}
-        </label>
+        {label && (
+          <label
+            className="block text-sm font-medium text-gray-700"
+            htmlFor={name}
+          >
+            {label}
+          </label>
+        )}
         <input
           {...rest}
           className="w-full rounded border-2 border-gray-400 px-2 py-1 text-lg"
