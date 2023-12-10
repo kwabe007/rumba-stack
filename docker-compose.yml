@@ -11,6 +11,8 @@ services:
       - '127.0.0.1:${CONTAINER_PORT}:${CONTAINER_PORT}'
     networks:
       - mongodb
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
 
 networks:
   mongodb:
