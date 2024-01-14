@@ -25,3 +25,11 @@ export function safeRedirect(
 export function validateEmail(email: unknown): email is string {
   return typeof email === 'string' && email.length > 3 && email.includes('@')
 }
+
+export function parseNumberOrThrow(numberString: string): number {
+  const parsed = parseInt(numberString, 10)
+  if (isNaN(parsed)) {
+    throw new Error(`Could not parse number string: ${numberString}`)
+  }
+  return parsed
+}
