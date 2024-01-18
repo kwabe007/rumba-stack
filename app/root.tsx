@@ -17,7 +17,7 @@ export default function App() {
   return (
     <html>
       <head>
-        <link rel="icon" href="data:image/x-icon;base64,AA" />
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <Meta />
