@@ -1,6 +1,6 @@
 import { Database } from '@paralect/node-mongo'
 import { createIndexIfNotExists, getConnectionString, getConnectionStringForPrint } from "./database-utils";
-import { requireEnvVar } from '~/utils.server'
+import invariant from "tiny-invariant";
 
 let db: Database
 
@@ -8,8 +8,8 @@ declare global {
   var __node_mongo_db__: Database
 }
 
-requireEnvVar('MONGODB_HOST')
-requireEnvVar('MONGODB_DATABASE')
+invariant(process.env.MONGODB_HOST, 'MONGODB_HOST must be set')
+invariant(process.env.MONGODB_DATABASE, 'MONGODB_DATABASE must be set')
 
 if (!global.__node_mongo_db__) {
   const connectionPrintString = getConnectionStringForPrint()
