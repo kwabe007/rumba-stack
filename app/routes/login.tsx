@@ -5,7 +5,7 @@ import type {
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Link, useSearchParams } from '@remix-run/react'
-import { createUserSession, getUserId } from '~/session.server'
+import { createUserSession, getUserIdFromSession } from '~/session.server'
 import { safeRedirect } from '~/utils'
 import { verifyLogin } from '~/domains/users/user-queries.server'
 import Input from '~/components/Input'
@@ -15,7 +15,7 @@ import { UserInputSchema } from '~/domains/users/user-schema'
 import { z } from 'zod'
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const userId = await getUserId(request)
+  const userId = await getUserIdFromSession(request)
   if (userId) return redirect('/')
   return json({})
 }

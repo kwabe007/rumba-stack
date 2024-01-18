@@ -24,35 +24,35 @@ export async function getSession(request: Request) {
   return sessionStorage.getSession(cookie)
 }
 
-export async function getUserId(request: Request): Promise<string | undefined> {
+export async function getUserIdFromSession(request: Request): Promise<string | undefined> {
   const session = await getSession(request)
   return session.get(USER_SESSION_KEY)
 }
 
 export async function getUser(request: Request) {
-  const userId = await getUserId(request)
+  const userId = await getUserIdFromSession(request)
   if (userId === undefined) return null
 
   return await getUserById(userId)
 }
 
-export async function requireUser(request: Request) {
-  const userId = await getUserId(request)
+export async function getUserOr401(request: Request) {
+  const userId = await getUserIdFromSession(request)
   if (userId === undefined) {
-    throw json('Unauthorized', 403)
+    throw json({ message: 'Unauthenticated' }, 401)
   }
 
   const user = await getUserById(userId)
   if (!user) {
-    throw json('Unauthorized', 403)
+    throw json({ message: 'Unauthenticated' }, 401)
   }
   return user
 }
 
-export async function requireAdmin(request: Request) {
-  const user = await requireUser(request)
+export async function getAdminUserOr403(request: Request) {
+  const user = await getUserOr401(request)
   if (user.role !== Role.Admin) {
-    throw json('Unauthorized', 403)
+    throw json({ message: 'Unauthorized' }, 403)
   }
 }
 
