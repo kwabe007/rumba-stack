@@ -2,11 +2,13 @@ import { Links, LiveReload, Meta, Outlet, Scripts } from '@remix-run/react'
 import { LinksFunction, LoaderFunctionArgs } from '@remix-run/node'
 
 import tailwindStyles from './tailwind.css'
+import fontStyles from "./fonts.css";
 import { getUser } from '~/session.server'
 import { typedjson } from 'remix-typedjson'
 
 export const links: LinksFunction = () => [
   { rel: 'stylesheet', href: tailwindStyles },
+  { rel: "stylesheet", href: fontStyles },
 ]
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
