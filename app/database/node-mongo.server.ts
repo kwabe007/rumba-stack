@@ -1,6 +1,6 @@
 import { Database } from '@paralect/node-mongo'
 import { createIndexIfNotExists, getConnectionString, getConnectionStringForPrint } from "./database-utils";
-import invariant from "tiny-invariant";
+import { invariant } from "@epic-web/invariant";
 
 let db: Database
 
